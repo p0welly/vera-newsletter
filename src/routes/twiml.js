@@ -20,7 +20,7 @@ router.get('/play', (req, res) => {
   twiml.play(audioUrl);
 
   const gather = twiml.gather({ numDigits: '1', action: `/twiml/keypress?sendId=${sendId}&subscriberId=${subscriberId}`, method: 'POST', timeout: 5 });
-  gather.say({ voice: 'Polly.Amy', language: 'en-GB' }, 'To hear this again, press 1. To unsubscribe from future calls, press 9.');
+  gather.say({ voice: 'Polly.Amy', language: 'en-GB' }, "This was Vera. To hear the message again, press 1. To stop receiving calls from Vera, press 9.");
 
   res.type('text/xml');
   res.send(twiml.toString());
@@ -45,10 +45,10 @@ router.post('/keypress', async (req, res) => {
           [sendId, subscriberId]
         );
       }
-      twiml.say({ voice: 'Polly.Amy', language: 'en-GB' }, "You've been unsubscribed and won't receive any more calls. Goodbye.");
+      twiml.say({ voice: 'Polly.Amy', language: 'en-GB' }, "You've been unsubscribed. Vera won't call again. Goodbye.");
     } catch (err) {
       console.error('Unsubscribe error:', err);
-      twiml.say({ voice: 'Polly.Amy', language: 'en-GB' }, "Sorry, we couldn't process that. Please contact us directly to unsubscribe. Goodbye.");
+      twiml.say({ voice: 'Polly.Amy', language: 'en-GB' }, "Sorry, Vera couldn't process that. Please contact us directly to unsubscribe. Goodbye.");
     }
   } else if (digit === '1') {
     // Replay — redirect back to the play endpoint

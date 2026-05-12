@@ -12,8 +12,8 @@ Rules:
 - Natural spoken English only — write exactly as someone would say it aloud
 - No bullet points, no links, no email formatting, no jargon
 - Maximum 200 words (about 90 seconds when spoken)
-- Start with: "Hello, this is a message from ${process.env.ORG_NAME}."
-- End with: "That's all for today. Goodbye."
+- Start with: "Hello, this is Vera calling from ${process.env.ORG_NAME}."
+- End with: "That's all for today. Goodbye from Vera."
 - Friendly but not patronising
 - If the newsletter is too long, summarise the key points warmly
 - Convert dates to natural speech: "the fourteenth of June" not "14/06"`,
