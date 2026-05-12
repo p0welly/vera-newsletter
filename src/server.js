@@ -7,13 +7,14 @@ const webhookRouter = require('./routes/webhook');
 const twimlRouter = require('./routes/twiml');
 const subscriberRouter = require('./routes/subscribers');
 const testRouter = require('./routes/test');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 let dbReady = false;
 
-// Health check responds immediately — Railway needs this before env vars are set
+// Health check responds immediately
 app.get('/health', (req, res) => res.json({ ok: true, db: dbReady }));
 
 // Serve generated audio files publicly (Twilio needs to fetch them)
@@ -23,11 +24,11 @@ app.use('/webhook', webhookRouter);
 app.use('/twiml', twimlRouter);
 app.use('/subscribers', subscriberRouter);
 app.use('/test', testRouter);
+app.use('/admin', adminRouter);
 
 // Start listening immediately so health check passes
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Init DB separately — logs error but doesn't crash the process
 async function initDb() {
   try {
     const schema = fs.readFileSync(path.join(__dirname, '../schema.sql'), 'utf8');

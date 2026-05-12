@@ -37,9 +37,14 @@ router.post('/keypress', async (req, res) => {
     try {
       await db.query('UPDATE subscribers SET active = FALSE WHERE id = $1', [subscriberId]);
 
-      const { rows } = await db.query('SELECT email, phone FROM subscribers WHERE id = $1', [subscriberId]);
+      const { rows } = await db.query(
+        `SELECT s.email, s.phone, o.name AS org_name
+         FROM subscribers s JOIN organisations o ON o.id = s.org_id
+         WHERE s.id = $1`,
+        [subscriberId]
+      );
       if (rows[0]) {
-        await sendUnsubscribeConfirmation(rows[0].email).catch(() => {});
+        await sendUnsubscribeConfirmation(rows[0].email, rows[0].org_name).catch(() => {});
         await db.query(
           'UPDATE call_log SET unsubscribed = TRUE WHERE send_id = $1 AND subscriber_id = $2',
           [sendId, subscriberId]
