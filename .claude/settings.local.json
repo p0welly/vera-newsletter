@@ -4,7 +4,9 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit -m 'Initial build: email-to-phone newsletter system *)",
-      "Bash(git commit -m 'Name the AI caller Vera \\(Voice-Enabled Reading Assistant\\) *)"
+      "Bash(git commit -m 'Name the AI caller Vera \\(Voice-Enabled Reading Assistant\\) *)",
+      "Bash(gh repo *)",
+      "PowerShell(gh repo create vera-newsletter --public --description \"Email-to-phone newsletter system - Vera reads your newsletter over the phone\" --source \"C:\\\\Users\\\\AndyPowell\\\\OneDrive - Personal\\\\OneDrive\\\\Claude Code\\\\phone thing\" --push)"
     ]
   }
 }

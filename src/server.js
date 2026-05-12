@@ -5,6 +5,7 @@ const db = require('./db');
 const webhookRouter = require('./routes/webhook');
 const twimlRouter = require('./routes/twiml');
 const subscriberRouter = require('./routes/subscribers');
+const testRouter = require('./routes/test');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +18,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/webhook', webhookRouter);
 app.use('/twiml', twimlRouter);
 app.use('/subscribers', subscriberRouter);
+app.use('/test', testRouter);
 
 async function start() {
   // Run schema on startup — idempotent, safe to re-run
