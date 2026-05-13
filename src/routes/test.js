@@ -24,16 +24,28 @@ nine in the morning until five in the afternoon, if you ever need a hand.
 See you soon.
 `;
 
+function normalisePhone(raw) {
+  if (!raw) return null;
+  // Already E.164
+  if (/^\+\d{10,15}$/.test(raw)) return raw;
+  const digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('07') && digits.length === 11) return '+44' + digits.slice(1);
+  if (digits.startsWith('447') && digits.length === 12) return '+' + digits;
+  if (digits.startsWith('44') && digits.length === 12) return '+' + digits;
+  return null;
+}
+
 // POST /test/call — fire the full chain for one phone number
 // Requires org API key. Body: { phone: "+447712345678", content: "optional" }
 router.post('/call', express.json(), requireOrg, async (req, res) => {
-  const { phone, content } = req.body;
+  const { phone: rawPhone, content } = req.body;
+  const phone = normalisePhone(rawPhone);
 
   if (!phone) {
-    return res.status(400).json({ error: 'phone required (E.164 format, e.g. +447712345678)' });
+    return res.status(400).json({ error: 'phone required — UK mobile (07...) or E.164 (+447...)' });
   }
 
-  res.json({ ok: true, org: req.org.name, message: 'Call chain started — Vera should ring within 30 seconds.' });
+  res.json({ ok: true, org: req.org.name, phone, message: 'Call chain started — Vera should ring within 30 seconds.' });
 
   try {
     const emailContent = content || SAMPLE_NEWSLETTER;
