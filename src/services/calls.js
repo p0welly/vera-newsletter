@@ -1,8 +1,7 @@
 const twilio = require('twilio');
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
 async function initiateCall(toNumber, sendId, subscriberId, audioUrl) {
+  const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
   const twimlUrl = `${process.env.APP_URL}/twiml/play?` + new URLSearchParams({
     audioUrl,
     sendId,

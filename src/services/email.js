@@ -1,8 +1,7 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 async function sendConfirmation(toEmail, phone, orgName) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
     from: `${orgName} <${process.env.FROM_EMAIL}>`,
     to: toEmail,
@@ -23,6 +22,7 @@ ${orgName}`,
 }
 
 async function sendUnsubscribeConfirmation(toEmail, orgName) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
     from: `${orgName} <${process.env.FROM_EMAIL}>`,
     to: toEmail,

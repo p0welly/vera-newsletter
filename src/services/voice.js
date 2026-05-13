@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const openai = new OpenAI();
 const audioDir = path.join(__dirname, '../../audio');
 
 if (!fs.existsSync(audioDir)) {
@@ -11,6 +10,7 @@ if (!fs.existsSync(audioDir)) {
 }
 
 async function generateAudio(script) {
+  const openai = new OpenAI();
   const filename = `${crypto.randomUUID()}.mp3`;
   const filepath = path.join(audioDir, filename);
 
