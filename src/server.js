@@ -1,3 +1,7 @@
+process.on('uncaughtException', (err) => console.error('UNCAUGHT EXCEPTION:', err));
+process.on('unhandledRejection', (err) => console.error('UNHANDLED REJECTION:', err));
+
+console.log('Starting Vera server...');
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
@@ -30,6 +34,7 @@ app.use('/test', testRouter);
 app.use('/admin', adminRouter);
 
 // Start listening immediately so health check passes
+console.log(`Binding to port ${PORT}...`);
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 async function initDb() {
