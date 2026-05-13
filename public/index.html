@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vera — Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a1a;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header span { font-size: 0.85rem; color: #888; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e5e5e5;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: #444; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; }
+
+    label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem; color: #555; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #d5d5d5;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      margin-bottom: 1rem;
+      background: #fafafa;
+    }
+    input:focus, textarea:focus { outline: none; border-color: #1a1a1a; background: white; }
+    textarea { resize: vertical; min-height: 100px; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: #1a1a1a; color: white; }
+    .btn-green { background: #16a34a; color: white; }
+    .btn-sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
+
+    .response {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+    }
+    .response.ok { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .response.err { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid #e5e5e5; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; }
+    td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f0f0f0; }
+    tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-grey { background: #f3f4f6; color: #6b7280; }
+
+    .key-display {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: #f3f4f6;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .tab {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #e5e5e5;
+      background: white;
+      color: #888;
+    }
+    .tab.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    #status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #888;
+      display: inline-block;
+      margin-right: 0.4rem;
+    }
+    #status-dot.ok { background: #16a34a; }
+    #status-dot.err { background: #dc2626; }
+
+    .empty { text-align: center; color: #aaa; padding: 2rem; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Vera</h1>
+  <span>Voice-Enabled Reading Assistant — Admin</span>
+  <span style="margin-left:auto; display:flex; align-items:center;">
+    <span id="status-dot"></span>
+    <span id="status-text" style="font-size:0.8rem; color:#888;">checking...</span>
+  </span>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('test')">Test Call</div>
+    <div class="tab" onclick="switchTab('orgs')">Organisations</div>
+    <div class="tab" onclick="switchTab('history')">Call History</div>
+  </div>
+
+  <!-- TEST CALL -->
+  <div class="section active" id="section-test">
+    <div class="card">
+      <h2>Trigger a Test Call</h2>
+      <label>Org API Key</label>
+      <input type="password" id="test-api-key" placeholder="Your org API key" />
+      <label>Phone Number (E.164)</label>
+      <input type="tel" id="test-phone" placeholder="+447712345678" />
+      <label>Custom newsletter content (optional — leave blank for sample)</label>
+      <textarea id="test-content" placeholder="Paste newsletter text here, or leave blank to use the built-in sample..."></textarea>
+      <button class="btn-green" onclick="triggerCall()">📞 Call Now</button>
+      <div class="response" id="test-response"></div>
+    </div>
+  </div>
+
+  <!-- ORGS -->
+  <div class="section" id="section-orgs">
+    <div class="card">
+      <h2>Create Organisation</h2>
+      <label>Admin Key</label>
+      <input type="password" id="admin-key" placeholder="Your ADMIN_KEY env var" />
+      <div class="row">
+        <div>
+          <label>Organisation Name</label>
+          <input type="text" id="org-name" placeholder="Sheffield City Council" />
+        </div>
+        <div>
+          <label>Slug (lowercase, hyphens only)</label>
+          <input type="text" id="org-slug" placeholder="sheffield" />
+        </div>
+      </div>
+      <label>Trusted Sender Email (optional)</label>
+      <input type="email" id="org-sender" placeholder="comms@sheffield.gov.uk" />
+      <button class="btn-primary" onclick="createOrg()">Create Organisation</button>
+      <div class="response" id="org-response"></div>
+    </div>
+
+    <div class="card">
+      <h2>All Organisations</h2>
+      <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+        <input type="password" id="admin-key-list" placeholder="Admin key" style="margin:0; flex:1;" />
+        <button class="btn-primary btn-sm" onclick="listOrgs()">Load</button>
+      </div>
+      <div id="orgs-table"><div class="empty">Enter admin key and click Load</div></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="section" id="section-history">
+    <div class="card">
+      <h2>Send History</h2>
+      <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+        <input type="password" id="history-api-key" placeholder="Org API key" style="margin:0; flex:1;" />
+        <button class="btn-primary btn-sm" onclick="loadHistory()">Load</button>
+      </div>
+      <div id="history-table"><div class="empty">Enter org API key and click Load</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Health check
+  fetch('/health').then(r => r.json()).then(d => {
+    document.getElementById('status-dot').className = d.db ? 'ok' : 'err';
+    document.getElementById('status-text').textContent = d.db ? 'Connected' : 'DB not ready';
+  }).catch(() => {
+    document.getElementById('status-dot').className = 'err';
+    document.getElementById('status-text').textContent = 'Offline';
+  });
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', ['test','orgs','history'][i] === name);
+    });
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+  }
+
+  function showResponse(id, data, isError) {
+    const el = document.getElementById(id);
+    el.textContent = JSON.stringify(data, null, 2);
+    el.className = 'response ' + (isError ? 'err' : 'ok');
+    el.style.display = 'block';
+  }
+
+  async function triggerCall() {
+    const apiKey = document.getElementById('test-api-key').value.trim();
+    const phone = document.getElementById('test-phone').value.trim();
+    const content = document.getElementById('test-content').value.trim();
+    if (!apiKey || !phone) return alert('API key and phone number are required.');
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Calling...';
+
+    try {
+      const res = await fetch('/test/call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+        body: JSON.stringify({ phone, ...(content && { content }) }),
+      });
+      const data = await res.json();
+      showResponse('test-response', data, !res.ok);
+    } catch (e) {
+      showResponse('test-response', { error: e.message }, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '📞 Call Now';
+    }
+  }
+
+  async function createOrg() {
+    const adminKey = document.getElementById('admin-key').value.trim();
+    const name = document.getElementById('org-name').value.trim();
+    const slug = document.getElementById('org-slug').value.trim();
+    const trusted_sender = document.getElementById('org-sender').value.trim();
+    if (!adminKey || !name || !slug) return alert('Admin key, name, and slug are required.');
+
+    try {
+      const res = await fetch('/admin/orgs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ name, slug, ...(trusted_sender && { trusted_sender }) }),
+      });
+      const data = await res.json();
+      showResponse('org-response', data, !res.ok);
+      if (res.ok) { document.getElementById('org-name').value = ''; document.getElementById('org-slug').value = ''; }
+    } catch (e) {
+      showResponse('org-response', { error: e.message }, true);
+    }
+  }
+
+  async function listOrgs() {
+    const adminKey = document.getElementById('admin-key-list').value.trim();
+    if (!adminKey) return alert('Admin key required.');
+
+    try {
+      const res = await fetch('/admin/orgs', { headers: { 'x-admin-key': adminKey } });
+      const data = await res.json();
+      if (!res.ok) { document.getElementById('orgs-table').innerHTML = `<div class="empty">${data.error}</div>`; return; }
+      if (!data.length) { document.getElementById('orgs-table').innerHTML = '<div class="empty">No organisations yet</div>'; return; }
+
+      document.getElementById('orgs-table').innerHTML = `
+        <table>
+          <thead><tr><th>Name</th><th>Slug</th><th>Inbound Email</th><th>Trusted Sender</th><th>Status</th></tr></thead>
+          <tbody>${data.map(o => `
+            <tr>
+              <td>${o.name}</td>
+              <td><span class="key-display">${o.slug}</span></td>
+              <td><span class="key-display">${o.inbound_email}</span></td>
+              <td>${o.trusted_sender || '—'}</td>
+              <td><span class="badge ${o.active ? 'badge-green' : 'badge-red'}">${o.active ? 'Active' : 'Inactive'}</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch (e) {
+      document.getElementById('orgs-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    }
+  }
+
+  async function loadHistory() {
+    const apiKey = document.getElementById('history-api-key').value.trim();
+    if (!apiKey) return alert('Org API key required.');
+
+    try {
+      const res = await fetch('/subscribers/sends', { headers: { 'Authorization': 'Bearer ' + apiKey } });
+      const data = await res.json();
+      if (!res.ok) { document.getElementById('history-table').innerHTML = `<div class="empty">${data.error}</div>`; return; }
+      if (!data.length) { document.getElementById('history-table').innerHTML = '<div class="empty">No sends yet</div>'; return; }
+
+      document.getElementById('history-table').innerHTML = `
+        <table>
+          <thead><tr><th>Subject</th><th>Sent</th><th>Subscribers</th><th>Answered</th><th>Missed</th><th>Unsubs</th></tr></thead>
+          <tbody>${data.map(s => `
+            <tr>
+              <td>${s.subject || '(no subject)'}</td>
+              <td>${new Date(s.sent_at).toLocaleString('en-GB')}</td>
+              <td>${s.total_subscribers}</td>
+              <td><span class="badge badge-green">${s.answered}</span></td>
+              <td><span class="badge badge-red">${s.missed}</span></td>
+              <td>${s.unsubscribed > 0 ? `<span class="badge badge-grey">${s.unsubscribed}</span>` : '—'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch (e) {
+      document.getElementById('history-table').innerHTML = `<div class="empty">Error: ${e.message}</div>`;
+    }
+  }
+</script>
+</body>
+</html>

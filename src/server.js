@@ -20,6 +20,9 @@ app.get('/health', (req, res) => res.json({ ok: true, db: dbReady }));
 // Serve generated audio files publicly (Twilio needs to fetch them)
 app.use('/audio', express.static(path.join(__dirname, '../audio')));
 
+// Web UI
+app.use(express.static(path.join(__dirname, '../public')));
+
 app.use('/webhook', webhookRouter);
 app.use('/twiml', twimlRouter);
 app.use('/subscribers', subscriberRouter);
