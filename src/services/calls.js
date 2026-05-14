@@ -12,6 +12,7 @@ async function initiateCall(toNumber, sendId, subscriberId, audioUrl) {
     to: toNumber,
     from: process.env.TWILIO_PHONE_NUMBER,
     url: twimlUrl,
+    method: 'GET',
     statusCallback: `${process.env.APP_URL}/twiml/status`,
     statusCallbackEvent: ['completed', 'failed', 'no-answer', 'busy'],
     statusCallbackMethod: 'POST',
