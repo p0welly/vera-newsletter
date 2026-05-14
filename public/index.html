@@ -168,7 +168,11 @@
       <input type="tel" id="test-phone" placeholder="+447712345678" />
       <label>Custom newsletter content (optional — leave blank for sample)</label>
       <textarea id="test-content" placeholder="Paste newsletter text here, or leave blank to use the built-in sample..."></textarea>
-      <button class="btn-green" onclick="triggerCall()">📞 Call Now</button>
+      <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <button class="btn-green" onclick="triggerCall()">📞 Call Now</button>
+        <button class="btn-primary" id="preview-btn" onclick="previewAudio()">▶ Play Preview</button>
+        <audio id="preview-audio" style="display:none;" controls></audio>
+      </div>
       <div class="response" id="test-response"></div>
     </div>
   </div>
@@ -242,6 +246,55 @@
     el.textContent = JSON.stringify(data, null, 2);
     el.className = 'response ' + (isError ? 'err' : 'ok');
     el.style.display = 'block';
+  }
+
+  let currentAudio = null;
+
+  async function previewAudio() {
+    const apiKey = document.getElementById('test-api-key').value.trim();
+    const content = document.getElementById('test-content').value.trim();
+    if (!apiKey) return alert('API key required.');
+
+    // Stop any currently playing audio
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+    const btn = document.getElementById('preview-btn');
+    const audioEl = document.getElementById('preview-audio');
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating…';
+
+    try {
+      const res = await fetch('/test/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+        body: JSON.stringify({ ...(content && { content }) }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        showResponse('test-response', data, true);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      audioEl.src = url;
+      audioEl.style.display = 'block';
+      audioEl.play();
+      currentAudio = audioEl;
+
+      audioEl.onended = () => { btn.textContent = '▶ Play Preview'; btn.disabled = false; };
+    } catch (e) {
+      showResponse('test-response', { error: e.message }, true);
+    } finally {
+      if (!currentAudio || currentAudio.ended) {
+        btn.textContent = '▶ Play Preview';
+        btn.disabled = false;
+      } else {
+        btn.textContent = '▶ Play Preview';
+        btn.disabled = false;
+      }
+    }
   }
 
   async function triggerCall() {

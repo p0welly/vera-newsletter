@@ -35,6 +35,23 @@ function normalisePhone(raw) {
   return null;
 }
 
+// POST /test/preview — generate and stream audio without making a call
+router.post('/preview', express.json(), requireOrg, async (req, res) => {
+  const { content } = req.body;
+  const emailContent = content || SAMPLE_NEWSLETTER;
+  const subject = 'Test Newsletter Preview';
+
+  try {
+    const script = await rewriteForPhone(subject, emailContent, req.org.name);
+    const audioBuffer = await generateAudio(script);
+    res.type('audio/mpeg');
+    res.send(audioBuffer);
+  } catch (err) {
+    console.error(`[PREVIEW][${req.org.slug}] Error:`, err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /test/call — fire the full chain for one phone number
 // Requires org API key. Body: { phone: "+447712345678", content: "optional" }
 router.post('/call', express.json(), requireOrg, async (req, res) => {
