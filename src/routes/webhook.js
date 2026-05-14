@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const db = require('../db');
 const { rewriteForPhone } = require('../services/rewrite');
-const { generateAudio, deleteAudio } = require('../services/voice');
+const { generateAudio } = require('../services/voice');
 const { initiateCall } = require('../services/calls');
 
 const router = express.Router();
@@ -87,14 +87,15 @@ router.post('/inbound', express.urlencoded({ extended: true }), async (req, res)
     console.log(`[${org.slug}] Processing newsletter: "${subject}"`);
 
     const script = await rewriteForPhone(subject, emailContent, org.name);
-    const { publicUrl: audioUrl, filename } = await generateAudio(script);
+    const audioBuffer = await generateAudio(script);
 
     const sendResult = await db.query(
-      `INSERT INTO sends (org_id, subject, original_content, rewritten_script, audio_url)
+      `INSERT INTO sends (org_id, subject, original_content, rewritten_script, audio_data)
        VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [org.id, subject, emailContent, script, audioUrl]
+      [org.id, subject, emailContent, script, audioBuffer]
     );
     const sendId = sendResult.rows[0].id;
+    const audioUrl = `${process.env.APP_URL}/audio/${sendId}`;
 
     const { rows: subscribers } = await db.query(
       'SELECT id, phone FROM subscribers WHERE org_id = $1 AND active = TRUE AND confirmed = TRUE',
@@ -126,7 +127,7 @@ router.post('/inbound', express.urlencoded({ extended: true }), async (req, res)
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    setTimeout(() => deleteAudio(filename), 2 * 60 * 60 * 1000);
+    // Audio stored in DB — no temp file to clean up
   } catch (err) {
     console.error('Webhook processing error:', err);
   }

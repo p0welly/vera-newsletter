@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../db');
 const { requireOrg } = require('../middleware/auth');
 const { rewriteForPhone } = require('../services/rewrite');
-const { generateAudio, deleteAudio } = require('../services/voice');
+const { generateAudio } = require('../services/voice');
 const { initiateCall } = require('../services/calls');
 
 const router = express.Router();
@@ -53,17 +53,19 @@ router.post('/call', express.json(), requireOrg, async (req, res) => {
 
     console.log(`[TEST][${req.org.slug}] Rewriting for ${phone}`);
     const script = await rewriteForPhone(subject, emailContent, req.org.name);
-    console.log(`[TEST][${req.org.slug}] Script:\n${script}`);
+    console.log(`[TEST][${req.org.slug}] Script ready (${script.length} chars)`);
 
-    const { publicUrl: audioUrl, filename } = await generateAudio(script);
-    console.log(`[TEST][${req.org.slug}] Audio: ${audioUrl}`);
+    const audioBuffer = await generateAudio(script);
+    console.log(`[TEST][${req.org.slug}] Audio generated (${audioBuffer.length} bytes)`);
 
     const sendResult = await db.query(
-      `INSERT INTO sends (org_id, subject, original_content, rewritten_script, audio_url, total_subscribers)
+      `INSERT INTO sends (org_id, subject, original_content, rewritten_script, audio_data, total_subscribers)
        VALUES ($1, $2, $3, $4, $5, 1) RETURNING id`,
-      [req.org.id, subject, emailContent, script, audioUrl]
+      [req.org.id, subject, emailContent, script, audioBuffer]
     );
     const sendId = sendResult.rows[0].id;
+    const audioUrl = `${process.env.APP_URL}/audio/${sendId}`;
+    console.log(`[TEST][${req.org.slug}] Audio URL: ${audioUrl}`);
 
     const callSid = await initiateCall(phone, sendId, null, audioUrl);
     console.log(`[TEST][${req.org.slug}] Call SID: ${callSid}`);
@@ -72,8 +74,6 @@ router.post('/call', express.json(), requireOrg, async (req, res) => {
       `INSERT INTO call_log (send_id, twilio_call_sid, status) VALUES ($1, $2, 'initiated')`,
       [sendId, callSid]
     );
-
-    setTimeout(() => deleteAudio(filename), 2 * 60 * 60 * 1000);
   } catch (err) {
     console.error(`[TEST][${req.org.slug}] Error:`, err);
   }

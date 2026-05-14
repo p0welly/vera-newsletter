@@ -21,8 +21,18 @@ let dbReady = false;
 // Health check responds immediately
 app.get('/health', (req, res) => res.json({ ok: true, db: dbReady }));
 
-// Serve generated audio files publicly (Twilio needs to fetch them)
-app.use('/audio', express.static(path.join(__dirname, '../audio')));
+// Serve audio from DB — survives deploys, no ephemeral filesystem dependency
+app.get('/audio/:sendId', async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT audio_data FROM sends WHERE id = $1', [req.params.sendId]);
+    if (!rows[0] || !rows[0].audio_data) return res.status(404).send('Audio not found');
+    res.type('audio/mpeg');
+    res.send(rows[0].audio_data);
+  } catch (err) {
+    console.error('Audio serve error:', err);
+    res.status(500).send('Error');
+  }
+});
 
 // Web UI
 app.use(express.static(path.join(__dirname, '../public')));

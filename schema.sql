@@ -49,3 +49,6 @@ CREATE INDEX IF NOT EXISTS idx_sends_org ON sends(org_id);
 CREATE INDEX IF NOT EXISTS idx_call_log_send ON call_log(send_id);
 CREATE INDEX IF NOT EXISTS idx_call_log_subscriber ON call_log(subscriber_id);
 CREATE INDEX IF NOT EXISTS idx_call_log_sid ON call_log(twilio_call_sid);
+
+-- Add audio_data column if upgrading from file-based storage
+ALTER TABLE sends ADD COLUMN IF NOT EXISTS audio_data BYTEA;
