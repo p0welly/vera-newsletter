@@ -27,7 +27,7 @@ router.get('/play', (req, res) => {
 });
 
 // Handles keypress after message plays
-router.post('/keypress', async (req, res) => {
+router.post('/keypress', express.urlencoded({ extended: false }), async (req, res) => {
   const { sendId, subscriberId } = req.query;
   const digit = req.body.Digits;
   const twiml = new twilio.twiml.VoiceResponse();
@@ -69,7 +69,7 @@ router.post('/keypress', async (req, res) => {
 });
 
 // Twilio posts call status updates here
-router.post('/status', async (req, res) => {
+router.post('/status', express.urlencoded({ extended: false }), async (req, res) => {
   const { CallSid, CallStatus, CallDuration } = req.body;
 
   try {
@@ -86,7 +86,7 @@ router.post('/status', async (req, res) => {
 });
 
 // Answering machine detection — skip message if machine detected
-router.post('/amd', async (req, res) => {
+router.post('/amd', express.urlencoded({ extended: false }), async (req, res) => {
   const { CallSid, AnsweredBy } = req.body;
   console.log(`AMD result for ${CallSid}: ${AnsweredBy}`);
 
